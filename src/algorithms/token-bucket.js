@@ -6,6 +6,16 @@ export function createTokenBucket({
   const buckets = new Map();
 
   function consume(key){
+    if (!Number.isSafeInteger(capacity) || capacity <= 0) {
+      throw new TypeError("capacity must be a positive safe integer");
+    }
+    if (!Number.isFinite(refillRate) || refillRate <= 0) {
+      throw new TypeError("refillRate must be a positive finite number");
+    }
+    if (typeof key !== "string" || key.length === 0) {
+      throw new TypeError("key must be a non-empty string");
+    }
+
     const now = clock();
 
     if(!buckets.has(key)){
