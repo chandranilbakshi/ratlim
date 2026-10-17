@@ -9,10 +9,11 @@ Phase 1 — JavaScript fundamentals and in-memory algorithms.
 - Verified the local runtime: Bun 1.4.0.
 - Initialized a dependency-free JavaScript ES module package.
 - Added a minimal `bun:test` smoke test.
+- Token Bucket core passes ad hoc controlled-time checks for bursts, rejection, fractional refill, exact refill boundary, independent clients, capacity cap, and retry rounding.
 
 ## Current task
 
-Implement the in-memory Token Bucket algorithm.
+Understand retry-delay arithmetic, then add input validation and persistent deterministic Token Bucket tests.
 
 ## Architectural decisions
 
@@ -29,14 +30,20 @@ Implement the in-memory Token Bucket algorithm.
 ## Concepts learned
 
 - Pending: `Map`, closures, object state, elapsed-time arithmetic, fractional tokens, injected functions, and boundary conditions.
+- Practiced retrieving client state on both initialization paths, capping refill at capacity, and returning limiter methods and decision objects.
 
 ## Topics requiring revision
 
-- None recorded yet.
+- `var` versus `let` scope, initialization on every branch, and the temporal dead zone.
+- Object property shorthand requires an existing variable.
+- Converting milliseconds to seconds and capping refill at capacity.
+- Returning methods from a factory and returning decision objects from methods.
 
 ## Known bugs or limitations
 
-- No limiter algorithm has been implemented yet.
+- Input validation is missing; current checks cover valid configuration and nondecreasing time only.
+- Backward clock movement and floating-point boundary behavior still need dedicated review/tests.
+- Only the setup smoke test exists; no algorithm behavior is tested yet.
 - The package has no public exports yet.
 - Storage is not shared across processes and is lost on restart.
 
