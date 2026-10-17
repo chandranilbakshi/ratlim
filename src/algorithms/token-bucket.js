@@ -2,6 +2,7 @@ export function createTokenBucket({
   capacity,
   refillRate,
   clock = () => Date.now(),
+  cleanupInterval = 30000,
 }) {
   const buckets = new Map();
 
@@ -24,12 +25,12 @@ export function createTokenBucket({
     const userTokens = buckets.get(key).tokens;
     const userLastRefill = buckets.get(key).lastRefillAt;
 
-    let elapsed = now - userLastRefill;
-    let tokens = Math.min(capacity, userTokens+(elapsed/1000)*refillRate);
+    const elapsed = now - userLastRefill;
+    const tokens = Math.min(capacity, userTokens+(elapsed/1000)*refillRate);
     buckets.set(key, {tokens: tokens, lastRefillAt: now});
 
     if(tokens>=1){
-      buckets.set(key, {tokens: tokens-1});
+      buckets.get(key).tokens = tokens-1;
       return {
         allowed: true,
         remaining: tokens - 1,
@@ -43,5 +44,23 @@ export function createTokenBucket({
       }
     }
   }
-  return {consume}
+
+  function cleanup(){
+    const now = clock();
+    for(const [key, bucket] of buckets){
+      if((((now - bucket.lastRefillAt)/1000*refillRate)+bucket.tokens) >= capacity){
+        buckets.delete(key);
+      }
+    }
+  }
+
+  const cleanupTimer = cleanupInterval > 0 ? setInterval(cleanup, cleanupInterval) : null;
+
+  function close(){
+    if(cleanupTimer!==null){
+      clearInterval(cleanupTimer);
+    }
+  }
+
+  return {consume, close};
 }
