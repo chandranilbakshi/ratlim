@@ -73,7 +73,12 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice")).toEqual({ allowed: false, retryAfterMs: 999 });
   });
 
-  
+  test("keeps clients independent", () => {
+    const { limiter } = setup({ capacity: 1 });
+    limiter.consume("alice");
+    expect(limiter.consume("alice").allowed).toBe(false);
+    expect(limiter.consume("bob").allowed).toBe(true);
+  });
 
   
 
