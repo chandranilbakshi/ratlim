@@ -19,7 +19,14 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice")).toEqual({ allowed: false, retryAfterMs: 1000 });
   });
 
-  
+  test("retains a request just before expiry and removes it at the exact boundary", () => {
+    const { limiter, at } = setup({ capacity: 1 });
+    limiter.consume("alice");
+    at(999);
+    expect(limiter.consume("alice")).toEqual({ allowed: false, retryAfterMs: 1 });
+    at(1000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 
   
 
