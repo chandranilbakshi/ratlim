@@ -28,7 +28,17 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("expires staggered timestamps individually rather than resetting the whole log", () => {
+    const { limiter, at } = setup();
+    limiter.consume("alice");
+    at(400);
+    limiter.consume("alice");
+    at(1000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice")).toEqual({ allowed: false, retryAfterMs: 400 });
+    at(1400);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 
   
 
