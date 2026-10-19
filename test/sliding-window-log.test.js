@@ -64,7 +64,14 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("does not grant a fresh burst just because an aligned window boundary passes", () => {
+    const { limiter, at } = setup();
+    at(999);
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(1000);
+    expect(limiter.consume("alice")).toEqual({ allowed: false, retryAfterMs: 999 });
+  });
 
   
 
