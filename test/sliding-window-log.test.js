@@ -40,7 +40,18 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("rejected attempts do not add timestamps or extend the wait", () => {
+    const { limiter, at } = setup({ capacity: 1 });
+    limiter.consume("alice");
+    for (const time of [100, 500, 999]) {
+      at(time);
+      expect(limiter.consume("alice")).toEqual({
+        allowed: false, retryAfterMs: 1000 - time,
+      });
+    }
+    at(1000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 
   
 
