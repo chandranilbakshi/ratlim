@@ -53,7 +53,16 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("removes all expired timestamps after a long idle period", () => {
+    const { limiter, at } = setup();
+    limiter.consume("alice");
+    at(100);
+    limiter.consume("alice");
+    at(10_000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
