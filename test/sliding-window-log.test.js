@@ -111,7 +111,11 @@ describe("Sliding Window Log decisions", () => {
 
 describe("Sliding Window Log validation", () => {
   const config = { capacity: 2, windowMs: 1000, cleanupInterval: 0 };
-  
+  test.each([0])(
+    "rejects invalid capacity %p", (capacity) => {
+      expect(() => createSlidWinLog({ ...config, capacity })).toThrow(TypeError);
+    },
+  );
   
   
   
