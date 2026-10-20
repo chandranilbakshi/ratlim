@@ -97,7 +97,16 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("works with real-sized epoch timestamps", () => {
+    const { limiter, at } = setup({ capacity: 1 });
+    const epoch = 1_800_000_000_000;
+    at(epoch);
+    limiter.consume("alice");
+    at(epoch + 500);
+    expect(limiter.consume("alice").retryAfterMs).toBe(500);
+    at(epoch + 1000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 });
 
 describe("Sliding Window Log validation", () => {
