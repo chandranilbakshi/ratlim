@@ -88,7 +88,14 @@ describe("Sliding Window Log decisions", () => {
     expect(second.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("rounds fractional retry delays upward", () => {
+    const { limiter, at } = setup({ capacity: 1 });
+    limiter.consume("alice");
+    at(999.25);
+    expect(limiter.consume("alice").retryAfterMs).toBe(1);
+    at(1000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 
   
 });
