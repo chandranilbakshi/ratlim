@@ -80,7 +80,13 @@ describe("Sliding Window Log decisions", () => {
     expect(limiter.consume("bob").allowed).toBe(true);
   });
 
-  
+  test("keeps limiter instances independent", () => {
+    const first = setup({ capacity: 1 }).limiter;
+    const second = setup({ capacity: 1 }).limiter;
+    first.consume("alice");
+    expect(first.consume("alice").allowed).toBe(false);
+    expect(second.consume("alice").allowed).toBe(true);
+  });
 
   
 
