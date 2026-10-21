@@ -116,7 +116,7 @@ describe("Sliding Window Log validation", () => {
       expect(() => createSlidWinLog({ ...config, capacity })).toThrow(TypeError);
     },
   );
-  test.each([0, -1, NaN, Infinity])(
+  test.each([0, -1, NaN, Infinity, "1000"])(
     "rejects invalid window duration %p", (windowMs) => {
       expect(() => createSlidWinLog({ ...config, windowMs })).toThrow(TypeError);
     },
