@@ -176,7 +176,19 @@ describe("Sliding Window Log cleanup and lifecycle", () => {
     limiter.close();
   });
 
-  
+  test("cleanup handles an empty store and independent client expirations", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ capacity: 1, cleanupInterval: 100 });
+    expect(() => timers.tick()).not.toThrow();
+    limiter.consume("alice");
+    at(500);
+    limiter.consume("bob");
+    at(1000);
+    timers.tick();
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("bob").allowed).toBe(false);
+    limiter.close();
+  });
 
   
 });
