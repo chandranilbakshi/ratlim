@@ -145,7 +145,23 @@ describe("Sliding Window Log cleanup and lifecycle", () => {
     expect(timers.scheduled).toHaveLength(0);
   });
 
-  
+  test("cleanup removes a fully expired history exactly at its boundary", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ capacity: 1, cleanupInterval: 100 });
+    limiter.consume("alice");
+    // A narrowly scoped spy verifies reclamation, which decisions alone cannot prove.
+    const deleteSpy = spyOn(Map.prototype, "delete");
+    try {
+      at(999);
+      timers.tick();
+      expect(deleteSpy).not.toHaveBeenCalledWith("alice");
+      expect(limiter.consume("alice").allowed).toBe(false);
+      at(1000);
+      timers.tick();
+      expect(deleteSpy).toHaveBeenCalledWith("alice");
+      expect(limiter.consume("alice").allowed).toBe(true);
+    } finally { limiter.close(); }
+  });
 
   
 
