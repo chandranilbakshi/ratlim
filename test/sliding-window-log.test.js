@@ -139,7 +139,11 @@ describe("Sliding Window Log validation", () => {
 describe("Sliding Window Log cleanup and lifecycle", () => {
   afterEach(() => mock.restore());
 
-  
+  test("cleanupInterval zero does not schedule a timer", () => {
+    const timers = installIntervalHarness();
+    setup();
+    expect(timers.scheduled).toHaveLength(0);
+  });
 
   
 
