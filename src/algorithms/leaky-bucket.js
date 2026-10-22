@@ -14,7 +14,13 @@ export function createLeakyBucket({
   const clients = new Map();
 
   async function schedule(key, task) {
-    // TODO: Validate key and task before creating client state.
+    if(typeof key !== "string" || key.length === 0){
+      throw new TypeError("key must be a non-empty string");
+    }
+    if(typeof task !== "function"){
+      throw new TypeError("task must be a function");
+    }
+
     let client = clients.get(key);
 
     if (!client){
