@@ -121,7 +121,7 @@ describe("Sliding Window Log validation", () => {
       expect(() => createSlidWinLog({ ...config, windowMs })).toThrow(TypeError);
     },
   );
-  test.each([-1, 0.5, NaN])(
+  test.each([-1, 0.5, NaN, Infinity])(
     "rejects invalid cleanup interval %p", (cleanupInterval) => {
       expect(() => createSlidWinLog({ ...config, cleanupInterval })).toThrow(TypeError);
     },
