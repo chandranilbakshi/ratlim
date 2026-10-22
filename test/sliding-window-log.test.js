@@ -133,7 +133,7 @@ describe("Sliding Window Log validation", () => {
       expect(limiter.consume("alice").allowed).toBe(true);
     },
   );
-  
+  test.todo("rejects a non-function clock at construction");
 });
 
 describe("Sliding Window Log cleanup and lifecycle", () => {
