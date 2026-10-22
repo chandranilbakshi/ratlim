@@ -163,7 +163,18 @@ describe("Sliding Window Log cleanup and lifecycle", () => {
     } finally { limiter.close(); }
   });
 
-  
+  test("cleanup keeps partially active histories and their quota", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ cleanupInterval: 100 });
+    limiter.consume("alice");
+    at(500);
+    limiter.consume("alice");
+    at(1000);
+    timers.tick();
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice")).toEqual({ allowed: false, retryAfterMs: 500 });
+    limiter.close();
+  });
 
   
 
