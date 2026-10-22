@@ -37,7 +37,36 @@ export function createLeakyBucket({
     })
   }
 
+  async function processQueue(client) {
+    if(client.running || client.timer !== null || client.queue.length === 0){
+      return
+    }
 
+    const now = Date.now();
+    const delayMs = client.nextStartAt === null ? 0 : Math.max(0, client.nextStartAt - now);
+
+    if(delayMs > 0){
+      client.timer = setTimeout(() => {
+        client.timer = null;
+        processQueue(client);
+      }, delayMs);
+      return;
+    }
+
+    let job = client.queue.shift();
+    client.running = true;
+    client.nextStartAt = now + intervalMs;
+
+    try{
+      const result = await job.task();
+      job.resolve(result);
+    }catch(error){
+      job.reject(error);
+    }finally{
+      client.running = false;
+      processQueue(client);
+    }
+  }
 
   return { schedule };
 }
