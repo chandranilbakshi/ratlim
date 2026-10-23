@@ -190,5 +190,17 @@ describe("Sliding Window Log cleanup and lifecycle", () => {
     limiter.close();
   });
 
-  
+  test("close cancels the correct timer and remains safe to repeat", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ capacity: 1, cleanupInterval: 123 });
+    expect(timers.scheduled[0].delay).toBe(123);
+    limiter.consume("alice");
+    limiter.close();
+    limiter.close();
+    expect(timers.clearIntervalSpy).toHaveBeenCalledWith(timers.scheduled[0]);
+    expect(timers.scheduled[0].active).toBe(false);
+    expect(limiter.consume("alice").allowed).toBe(false);
+    at(1000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 });
