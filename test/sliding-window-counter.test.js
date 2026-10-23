@@ -28,7 +28,16 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("admits exactly when weighted history leaves room for a whole request", () => {
+    const { limiter, at } = setup();
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(1499);
+    expect(limiter.consume("alice").allowed).toBe(false);
+    at(1500); // Previous weight = 0.5, estimate = 1; cost 1 fits capacity 2.
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
