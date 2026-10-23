@@ -48,7 +48,17 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("rejections do not inflate either counter", () => {
+    const { limiter, at } = setup();
+    limiter.consume("alice");
+    limiter.consume("alice");
+    for (const time of [100, 900, 1000, 1200, 1499]) {
+      at(time);
+      expect(limiter.consume("alice").allowed).toBe(false);
+    }
+    at(1500);
+    expect(limiter.consume("alice").allowed).toBe(true);
+  });
 
   
 
