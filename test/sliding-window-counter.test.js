@@ -19,7 +19,14 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice")).toEqual({ allowed: false });
   });
 
-  
+  test("carries the current count into the previous count at an exact boundary", () => {
+    const { limiter, at } = setup();
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(1000);
+    // Weight is still 1 at the boundary: crossing it grants no fresh burst.
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
