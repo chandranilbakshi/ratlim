@@ -39,7 +39,14 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("counts accepted current-window work in addition to weighted history", () => {
+    const { limiter, at } = setup({ capacity: 4 });
+    for (let i = 0; i < 4; i++) limiter.consume("alice");
+    at(1500); // Previous contributes 2, leaving room for exactly 2 new requests.
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
