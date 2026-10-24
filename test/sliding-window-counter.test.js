@@ -78,7 +78,15 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("aligns windows to time zero rather than the first request", () => {
+    const { limiter, at } = setup();
+    at(900);
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(1500);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
