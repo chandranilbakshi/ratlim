@@ -60,7 +60,15 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("clears both counters when two windows pass without a request", () => {
+    const { limiter, at } = setup();
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(2000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
