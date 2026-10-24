@@ -113,7 +113,16 @@ describe("Sliding Window Counter decisions", () => {
     expect(second.consume("alice").allowed).toBe(true);
   });
 
-  
+  test("works at epoch-sized timestamps with a non-power-of-two window", () => {
+    const { limiter, at } = setup({ windowMs: 3000 });
+    const start = Math.floor(1_800_000_000_000 / 3000) * 3000;
+    at(start + 1);
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(start + 4500);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 });
