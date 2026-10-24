@@ -88,7 +88,15 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("discards the older previous count when advancing one window", () => {
+    const { limiter, at } = setup({ capacity: 4 });
+    for (let i = 0; i < 4; i++) limiter.consume("alice");
+    at(1500);
+    limiter.consume("alice"); // Current count 1, previous count 4.
+    at(2000); // Only that current count of 1 should carry forward.
+    for (let i = 0; i < 3; i++) expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
