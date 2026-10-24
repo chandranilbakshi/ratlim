@@ -98,7 +98,12 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("keeps clients independent", () => {
+    const { limiter } = setup({ capacity: 1 });
+    limiter.consume("alice");
+    expect(limiter.consume("alice").allowed).toBe(false);
+    expect(limiter.consume("bob").allowed).toBe(true);
+  });
 
   
 
