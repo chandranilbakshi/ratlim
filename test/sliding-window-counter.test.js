@@ -70,7 +70,13 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("clears stale state after a much longer idle period", () => {
+    const { limiter, at } = setup({ capacity: 1 });
+    limiter.consume("alice");
+    at(100_000);
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 
   
 
