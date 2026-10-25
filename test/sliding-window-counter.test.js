@@ -133,7 +133,11 @@ describe("Sliding Window Counter decisions", () => {
 
 describe("Sliding Window Counter validation", () => {
   const config = { capacity: 2, windowMs: 1000, cleanupInterval: 0 };
-  
+  test.each([0])(
+    "rejects invalid capacity %p", (capacity) => {
+      expect(() => createSlidWinCnt({ ...config, capacity })).toThrow(TypeError);
+    },
+  );
   
   
   
