@@ -124,7 +124,11 @@ describe("Sliding Window Counter decisions", () => {
     expect(limiter.consume("alice").allowed).toBe(false);
   });
 
-  
+  test("returns decisions without advertising the deferred retry feature", () => {
+    const { limiter } = setup({ capacity: 1 });
+    expect(limiter.consume("alice")).not.toHaveProperty("retryAfterMs");
+    expect(limiter.consume("alice")).not.toHaveProperty("retryAfterMs");
+  });
 });
 
 describe("Sliding Window Counter validation", () => {
