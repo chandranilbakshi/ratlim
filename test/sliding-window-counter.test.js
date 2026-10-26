@@ -138,7 +138,11 @@ describe("Sliding Window Counter validation", () => {
       expect(() => createSlidWinCnt({ ...config, capacity })).toThrow(TypeError);
     },
   );
-  
+  test.each([0])(
+    "rejects invalid window duration %p", (windowMs) => {
+      expect(() => createSlidWinCnt({ ...config, windowMs })).toThrow(TypeError);
+    },
+  );
   
   
   
