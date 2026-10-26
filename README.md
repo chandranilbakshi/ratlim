@@ -2,7 +2,7 @@
 
 A configurable, distributed rate-limiting library built with **Bun, JavaScript, and Redis**, designed to explore request throttling, concurrency control, and production-oriented backend engineering.
 
-The project aims to provide multiple rate-limiting algorithms, in-memory and distributed storage, atomic request processing, and a lightweight HTTP integration using Bun's native APIs.
+The project aims to provide multiple rate-limiting algorithms, in-memory and distributed storage, atomic request processing, and a lightweight HTTP integration using Bun's native APIs..
 
 > **Project Status:** Work in progress. Features described in the roadmap are planned and may not yet be implemented.
 
