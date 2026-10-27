@@ -143,7 +143,11 @@ describe("Sliding Window Counter validation", () => {
       expect(() => createSlidWinCnt({ ...config, windowMs })).toThrow(TypeError);
     },
   );
-  
+  test.each([-1])(
+    "rejects invalid cleanup interval %p", (cleanupInterval) => {
+      expect(() => createSlidWinCnt({ ...config, cleanupInterval })).toThrow(TypeError);
+    },
+  );
   
   
 });
