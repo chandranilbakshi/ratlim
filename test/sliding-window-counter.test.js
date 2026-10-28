@@ -148,7 +148,7 @@ describe("Sliding Window Counter validation", () => {
       expect(() => createSlidWinCnt({ ...config, cleanupInterval })).toThrow(TypeError);
     },
   );
-  test.each(["", null, undefined])(
+  test.each(["", null, undefined, 1])(
     "rejects invalid client key %p without spending quota", (key) => {
       const { limiter } = setup({ capacity: 1 });
       expect(() => limiter.consume(key)).toThrow(TypeError);
