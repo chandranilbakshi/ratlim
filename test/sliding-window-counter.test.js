@@ -211,5 +211,15 @@ describe("Sliding Window Counter cleanup and lifecycle", () => {
     limiter.close();
   });
 
-  
+  test("close cancels the correct timer without resetting quota", () => {
+    const timers = installIntervalHarness();
+    const { limiter } = setup({ capacity: 1, cleanupInterval: 321 });
+    expect(timers.scheduled[0].delay).toBe(321);
+    limiter.consume("alice");
+    limiter.close();
+    limiter.close();
+    expect(timers.clearIntervalSpy).toHaveBeenCalledWith(timers.scheduled[0]);
+    expect(timers.scheduled[0].active).toBe(false);
+    expect(limiter.consume("alice").allowed).toBe(false);
+  });
 });
