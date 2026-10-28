@@ -197,7 +197,19 @@ describe("Sliding Window Counter cleanup and lifecycle", () => {
     limiter.close();
   });
 
-  
+  test("cleanup handles an empty store and independent expiration times", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ capacity: 1, cleanupInterval: 100 });
+    expect(() => timers.tick()).not.toThrow();
+    limiter.consume("alice");
+    at(1000);
+    limiter.consume("bob");
+    at(2000);
+    timers.tick();
+    expect(limiter.consume("alice").allowed).toBe(true);
+    expect(limiter.consume("bob").allowed).toBe(false);
+    limiter.close();
+  });
 
   
 });
