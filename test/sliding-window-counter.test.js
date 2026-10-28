@@ -167,7 +167,24 @@ describe("Sliding Window Counter cleanup and lifecycle", () => {
     expect(timers.scheduled).toHaveLength(0);
   });
 
-  
+  test("cleanup keeps state before two windows pass and reclaims it at the boundary", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ cleanupInterval: 100 });
+    limiter.consume("alice");
+    limiter.consume("alice");
+    const deleteSpy = spyOn(Map.prototype, "delete");
+    try {
+      at(1999);
+      timers.tick();
+      expect(deleteSpy).not.toHaveBeenCalledWith("alice");
+      at(2000);
+      timers.tick();
+      expect(deleteSpy).toHaveBeenCalledWith("alice");
+      expect(limiter.consume("alice").allowed).toBe(true);
+      expect(limiter.consume("alice").allowed).toBe(true);
+      expect(limiter.consume("alice").allowed).toBe(false);
+    } finally { limiter.close(); }
+  });
 
   
 
