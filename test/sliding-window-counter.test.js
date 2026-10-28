@@ -155,7 +155,7 @@ describe("Sliding Window Counter validation", () => {
       expect(limiter.consume("alice").allowed).toBe(true);
     },
   );
-  
+  test.todo("rejects a non-function clock at construction");
 });
 
 describe("Sliding Window Counter cleanup and lifecycle", () => {
