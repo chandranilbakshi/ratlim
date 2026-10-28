@@ -186,7 +186,16 @@ describe("Sliding Window Counter cleanup and lifecycle", () => {
     } finally { limiter.close(); }
   });
 
-  
+  test("cleanup preserves previous-window quota that can still affect admission", () => {
+    const timers = installIntervalHarness();
+    const { limiter, at } = setup({ cleanupInterval: 100 });
+    limiter.consume("alice");
+    limiter.consume("alice");
+    at(1000);
+    timers.tick();
+    expect(limiter.consume("alice").allowed).toBe(false);
+    limiter.close();
+  });
 
   
 
