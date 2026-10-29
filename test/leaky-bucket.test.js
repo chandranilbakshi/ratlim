@@ -55,7 +55,22 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("capacity counts waiting jobs but excludes the running job", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock, deferred }) => {
+      const limiter = createLeakyBucket({ capacity: 1, leakRate: 2 });
+      const gate = deferred();
+      const first = limiter.schedule("alice", () => gate.promise);
+      const second = limiter.schedule("alice", () => "second");
+      let overflowRan = false;
+      await assert.rejects(limiter.schedule("alice", () => { overflowRan = true; }), /Queue is full/);
+      assert.equal(overflowRan, false);
+      gate.resolve("first");
+      assert.equal(await first, "first");
+      await clock.advanceTo(500);
+      assert.equal(await second, "second");
+      await clock.advanceTo(1000);
+    });
+  });
 
   
 
