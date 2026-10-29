@@ -48,7 +48,7 @@ export function createSlidWinLog({
   function cleanup(){
     const now = clock();
     for(const [key, catalog] of catalogs){
-      if(catalog.filter((timestamp) => timestamp > now - windowMs).length === 0){
+      if(catalog.at(-1) <= now - windowMs){
         catalogs.delete(key);
       }
     }
