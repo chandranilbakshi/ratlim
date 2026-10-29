@@ -24,7 +24,20 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("keeps a result pending until the asynchronous task completes", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock, deferred }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const gate = deferred();
+      let settled = false;
+      const result = limiter.schedule("alice", () => gate.promise);
+      result.then(() => { settled = true; });
+      await clock.flush();
+      assert.equal(settled, false);
+      gate.resolve("finished");
+      assert.equal(await result, "finished");
+      await clock.advanceTo(500);
+    });
+  });
 
   
 
