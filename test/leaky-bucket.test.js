@@ -13,7 +13,16 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("starts the first job immediately and returns its synchronous result", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const starts = [];
+      const result = limiter.schedule("alice", () => { starts.push(clock.now); return 42; });
+      assert.deepEqual(starts, [0]);
+      assert.equal(await result, 42);
+      await clock.advanceTo(500);
+    });
+  });
 
   
 
