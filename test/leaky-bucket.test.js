@@ -39,7 +39,21 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("executes jobs FIFO and keeps their Promise results separate", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const starts = [];
+      const first = limiter.schedule("alice", () => { starts.push(["A", clock.now]); return "A"; });
+      const second = limiter.schedule("alice", () => { starts.push(["B", clock.now]); return "B"; });
+      const third = limiter.schedule("alice", () => { starts.push(["C", clock.now]); return "C"; });
+      await clock.advanceTo(499);
+      assert.deepEqual(starts, [["A", 0]]);
+      await clock.advanceTo(1000);
+      assert.deepEqual(await Promise.all([first, second, third]), ["A", "B", "C"]);
+      assert.deepEqual(starts, [["A", 0], ["B", 500], ["C", 1000]]);
+      await clock.advanceTo(1500);
+    });
+  });
 
   
 
