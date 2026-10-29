@@ -102,7 +102,21 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("forwards synchronous task failures and continues with the next job", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const error = new Error("task failed");
+      const rejected = assert.rejects(
+        limiter.schedule("alice", () => { throw error; }),
+        (received) => received === error,
+      );
+      const next = limiter.schedule("alice", () => "recovered");
+      await rejected;
+      await clock.advanceTo(500);
+      assert.equal(await next, "recovered");
+      await clock.advanceTo(1000);
+    });
+  });
 
   
 
