@@ -72,7 +72,17 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("allows independent clients to run while another client is blocked", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock, deferred }) => {
+      const limiter = createLeakyBucket({ capacity: 1, leakRate: 2 });
+      const gate = deferred();
+      const alice = limiter.schedule("alice", () => gate.promise);
+      assert.equal(await limiter.schedule("bob", () => "bob result"), "bob result");
+      gate.resolve("alice result");
+      assert.equal(await alice, "alice result");
+      await clock.advanceTo(500);
+    });
+  });
 
   
 
