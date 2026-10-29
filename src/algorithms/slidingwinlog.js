@@ -45,5 +45,22 @@ export function createSlidWinLog({
     }
   }
 
-  return {consume};
+  function cleanup(){
+    const now = clock();
+    for(const [key, catalog] of catalogs){
+      if(catalog.filter((timestamp) => timestamp > now - windowMs).length === 0){
+        catalogs.delete(key);
+      }
+    }
+  }
+
+  const cleanupTimer = cleanupInterval > 0 ? setInterval(cleanup, cleanupInterval) : null;
+
+  function close(){
+    if(cleanupTimer!==null){
+      clearInterval(cleanupTimer);
+    }
+  }
+
+  return {consume, close};
 }
