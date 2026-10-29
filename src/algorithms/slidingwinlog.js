@@ -20,10 +20,29 @@ export function createSlidWinLog({
 
     let catalog = catalogs.get(key);
 
+    const now = clock();
+
     if(!catalog){
-      catalogs.set(key, [now]);
+      catalog = [];
+      catalogs.set(key, catalog);
     }
 
+    if(catalog.length !== 0){
+      catalog = catalog.filter((timestamp) => timestamp > now - windowMs);
+    }
+    catalogs.set(key, catalog);
+
+    if(catalog.length === capacity){
+      return {
+        allowed: false,
+        retryAfterMs: Math.ceil(catalog[0] + windowMs - now),
+      }
+    }
+    catalog.push(now);
+    return {
+      allowed: true,
+      retryAfterMs: 0,
+    }
   }
 
   return {consume};
