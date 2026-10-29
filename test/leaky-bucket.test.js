@@ -84,7 +84,23 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("does not overlap jobs for one client and starts promptly after a slow job", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock, deferred }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const gate = deferred();
+      const starts = [];
+      const first = limiter.schedule("alice", () => { starts.push(clock.now); return gate.promise; });
+      const second = limiter.schedule("alice", () => { starts.push(clock.now); return "second"; });
+      await clock.advanceTo(800);
+      assert.deepEqual(starts, [0]);
+      gate.resolve("first");
+      assert.equal(await first, "first");
+      await clock.flush();
+      assert.equal(await second, "second");
+      assert.deepEqual(starts, [0, 800]);
+      await clock.advanceTo(1300);
+    });
+  });
 
   
 
