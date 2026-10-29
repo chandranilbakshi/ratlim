@@ -12,6 +12,9 @@ export function createSlidWinLog({
   if (!Number.isSafeInteger(cleanupInterval) || cleanupInterval < 0) {
     throw new TypeError("cleanupInterval must be a positive safe integer");
   }
+  if (!Number.isFinite(windowMs) || windowMs <= 0) {
+    throw new TypeError("windowMs must be a positive finite number");
+  }
 
   function consume(key){
     if (typeof key !== "string" || key.length === 0){
