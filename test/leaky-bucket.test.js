@@ -227,7 +227,18 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("keeps limiter instances independent for the same client key", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock, deferred }) => {
+      const first = createLeakyBucket({ capacity: 1, leakRate: 2 });
+      const second = createLeakyBucket({ capacity: 1, leakRate: 2 });
+      const gate = deferred();
+      const pending = first.schedule("alice", () => gate.promise);
+      assert.equal(await second.schedule("alice", () => "independent"), "independent");
+      gate.resolve("done");
+      await pending;
+      await clock.advanceTo(500);
+    });
+  });
 });
 
 describe("Leaky Bucket validation", () => {
