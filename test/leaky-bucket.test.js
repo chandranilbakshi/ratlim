@@ -132,7 +132,19 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("creates only one wake-up timer when multiple jobs wait", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 3, leakRate: 2 });
+      const first = limiter.schedule("alice", () => "A");
+      await clock.flush();
+      const second = limiter.schedule("alice", () => "B");
+      const third = limiter.schedule("alice", () => "C");
+      assert.equal(clock.pendingTimers, 1);
+      await clock.advanceTo(1000);
+      assert.deepEqual(await Promise.all([first, second, third]), ["A", "B", "C"]);
+      await clock.advanceTo(1500);
+    });
+  });
 
   
 
