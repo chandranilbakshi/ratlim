@@ -212,7 +212,20 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("supports fractional leak rates", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 0.5 });
+      const starts = [];
+      const first = limiter.schedule("alice", () => starts.push(clock.now));
+      const second = limiter.schedule("alice", () => starts.push(clock.now));
+      await clock.advanceTo(1999);
+      assert.deepEqual(starts, [0]);
+      await clock.advanceTo(2000);
+      await Promise.all([first, second]);
+      assert.deepEqual(starts, [0, 2000]);
+      await clock.advanceTo(4000);
+    });
+  });
 
   
 });
