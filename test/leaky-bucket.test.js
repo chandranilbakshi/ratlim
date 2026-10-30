@@ -180,7 +180,22 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("keeps cooldown when new work arrives after the queue becomes empty", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      await limiter.schedule("alice", () => "first");
+      await clock.advanceTo(200);
+      let started = false;
+      const second = limiter.schedule("alice", () => { started = true; });
+      await clock.advanceTo(499);
+      assert.equal(started, false);
+      await clock.advanceTo(500);
+      await second;
+      assert.equal(started, true);
+      await clock.advanceTo(1000);
+      assert.equal(clock.pendingTimers, 0);
+    });
+  });
 
   
 
