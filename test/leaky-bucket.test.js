@@ -118,7 +118,19 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("forwards asynchronous task failures without stopping the queue", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock, deferred }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const gate = deferred();
+      const rejected = assert.rejects(limiter.schedule("alice", () => gate.promise), /async failure/);
+      const next = limiter.schedule("alice", () => "recovered");
+      gate.reject(new Error("async failure"));
+      await rejected;
+      await clock.advanceTo(500);
+      assert.equal(await next, "recovered");
+      await clock.advanceTo(1000);
+    });
+  });
 
   
 
