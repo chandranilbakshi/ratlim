@@ -163,7 +163,22 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("idle time does not accumulate credit for a later burst", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      await limiter.schedule("alice", () => "initial");
+      await clock.advanceTo(10_000);
+      const starts = [];
+      const first = limiter.schedule("alice", () => { starts.push(clock.now); });
+      const second = limiter.schedule("alice", () => { starts.push(clock.now); });
+      await clock.flush();
+      assert.deepEqual(starts, [10_000]);
+      await clock.advanceTo(10_500);
+      await Promise.all([first, second]);
+      assert.deepEqual(starts, [10_000, 10_500]);
+      await clock.advanceTo(11_000);
+    });
+  });
 
   
 
