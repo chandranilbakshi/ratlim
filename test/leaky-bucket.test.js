@@ -146,7 +146,22 @@ describe("Leaky Bucket scheduling", () => {
     });
   });
 
-  
+  test("rechecks the deadline if a timer fires early", () => {
+    runIsolatedLeakyScenario(async ({ assert, createLeakyBucket, clock }) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const starts = [];
+      const first = limiter.schedule("alice", () => { starts.push(clock.now); });
+      const second = limiter.schedule("alice", () => { starts.push(clock.now); });
+      await clock.flush();
+      await clock.fireEarly();
+      assert.deepEqual(starts, [0]);
+      assert.equal(clock.pendingTimers, 1);
+      await clock.advanceTo(500);
+      await Promise.all([first, second]);
+      assert.deepEqual(starts, [0, 500]);
+      await clock.advanceTo(1000);
+    });
+  });
 
   
 
