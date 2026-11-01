@@ -252,7 +252,14 @@ describe("Leaky Bucket validation", () => {
       expect(() => createLeakyBucket({ capacity: 2, leakRate })).toThrow(TypeError);
     },
   );
-  
+  test.each([""])(
+    "rejects invalid client key %p through a Promise", async (key) => {
+      const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
+      const result = limiter.schedule(key, () => "unused");
+      expect(result).toBeInstanceOf(Promise);
+      await expect(result).rejects.toThrow("key must be a non-empty string");
+    },
+  );
   
   
 });
