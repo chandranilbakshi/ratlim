@@ -247,7 +247,7 @@ describe("Leaky Bucket validation", () => {
       expect(() => createLeakyBucket({ capacity, leakRate: 2 })).toThrow(TypeError);
     },
   );
-  test.each([0])(
+  test.each([0, -1])(
     "rejects invalid leak rate %p", (leakRate) => {
       expect(() => createLeakyBucket({ capacity: 2, leakRate })).toThrow(TypeError);
     },
