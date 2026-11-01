@@ -242,7 +242,7 @@ describe("Leaky Bucket scheduling", () => {
 });
 
 describe("Leaky Bucket validation", () => {
-  test.each([0, -1, 1.5, NaN, Infinity, "2", undefined])(
+  test.each([0, -1, 1.5, NaN, Infinity, "2", undefined, Number.MAX_SAFE_INTEGER + 1])(
     "rejects invalid capacity %p", (capacity) => {
       expect(() => createLeakyBucket({ capacity, leakRate: 2 })).toThrow(TypeError);
     },
