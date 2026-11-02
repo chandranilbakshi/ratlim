@@ -15,7 +15,7 @@ Phase 1 — JavaScript fundamentals and in-memory algorithms.
 
 ## Current task
 
-Sliding Window Counter window advancement, weighting, and unit-cost admission logic are correct by inspection. Next persist initialized state in the Map and complete the rejection result/retry semantics. Tests and clock behavior remain deferred at the learner's request.
+Sliding Window Counter now persists state and passes ad hoc controlled checks for exhaustion, rollover, weighted admission, client isolation, and multi-window reset. Fix cleanup's missing clock read and finish configuration validation. Automated tests and clock behavior remain deferred at the learner's request.
 
 ## Architectural decisions
 
@@ -31,6 +31,7 @@ Sliding Window Counter window advancement, weighting, and unit-cost admission lo
 - No generic storage interface will be introduced yet because the algorithms need different state shapes and operations.
 - Sliding Window Log stores arrays of accepted timestamps per client, preserves duplicate timestamps, and treats `(now - windowMs, now]` as the active interval. Expiration must be applied before the capacity decision.
 - Sliding Window Counter uses aligned windows and per-client current/previous accepted counts. Estimate is currentCount plus previousCount weighted by the unelapsed fraction of the current window; unit-cost admission requires estimate + 1 <= capacity.
+- Sliding Window Counter retryAfterMs is explicitly deferred at the learner's request; current decisions provide only allowed. Cleanup may discard state at or after stored windowStart + 2 * windowMs.
 - Leaky Bucket uses the learner-selected queue-based behavior with `schedule(key, task)` returning the task's eventual result through a Promise.
 - Each client has an independent FIFO waiting queue. Capacity excludes the running job; the first job may start immediately. Subsequent starts are separated by at least `1000 / leakRate` milliseconds, with at most one running job per client and no accumulated idle burst allowance.
 - Queue overflow rejects submissions; task failure must settle its Promise and allow subsequent work to proceed. Timer lifecycle, shutdown, idle-state reclamation, and cancellation need explicit handling before this scheduler is complete.
@@ -59,7 +60,7 @@ Sliding Window Counter window advancement, weighting, and unit-cost admission lo
 - Sliding Window Log `close()` passes cleanupInterval (the duration) to clearInterval instead of cleanupTimer (the handle), so it does not reliably stop its timer. Window/clock validation and remaining counts are missing.
 - Sliding Window Log cleanup correctly deletes fully expired histories but allocates filtered arrays just to check emptiness; expired entries in partially active histories remain until consume prunes them.
 - Storage is not shared across processes and is lost on restart.
-- Sliding Window Counter does not save initialized state to its Map; repeated calls would start fresh. Its rejection object has an unfinished retryAfterMs property, so the module cannot parse. Validation still allows zero/noninteger windows and lacks clock-function checks; remaining and cleanup are not implemented.
+- Sliding Window Counter cleanup references an undeclared `now`; manually invoking the captured cleanup callback confirms a ReferenceError. Its close() correctly cancels the timer handle. Validation still allows zero/noninteger windows and lacks clock-function checks; remaining is not implemented.
 
 ## Next milestone
 
