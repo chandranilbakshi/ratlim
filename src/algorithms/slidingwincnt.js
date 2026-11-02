@@ -60,6 +60,8 @@ export function createSlidWinCnt({
   }
 
   function cleanup(){
+    const now = clock();
+
     for(const [key, catalog] of catalogs){
       if (now >= catalog.windowStart + windowMs * 2){
         catalogs.delete(key);
