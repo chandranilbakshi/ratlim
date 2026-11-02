@@ -1,10 +1,14 @@
 export function createSlidWinCnt({
   windowMs,
   capacity,
+  cleanupInterval = 30000,
   clock = () => Date.now()
 }) {
   if(!Number.isFinite(windowMs) || windowMs < 0){
     throw new TypeError("windowMs should be positive finite integer");
+  }
+  if (!Number.isSafeInteger(cleanupInterval) || cleanupInterval < 0) {
+    throw new TypeError("cleanupInterval must be a positive safe integer");
   }
   if(!Number.isSafeInteger(capacity) || capacity < 0){
     throw new TypeError("capacity should be positive safe integer");
@@ -46,16 +50,30 @@ export function createSlidWinCnt({
     if(estimatedCount + 1 > capacity){
       return {
         allowed: false,
-        retryAfterMs:
       }
     }
 
     catalog.currentCount += 1;
     return {
       allowed: true,
-      retryAfterMs: 0,
     }
   }
 
-  return {consume};
+  function cleanup(){
+    for(const [key, catalog] of catalogs){
+      if (now >= catalog.windowStart + windowMs * 2){
+        catalogs.delete(key);
+      }
+    }
+  }
+
+  const cleanupTimer = cleanupInterval > 0 ? setInterval(cleanup, cleanupInterval) : null;
+
+  function close(){
+    if(cleanupTimer !== null){
+      clearInterval(cleanupTimer);
+    }
+  }
+
+  return {consume, close};
 }
