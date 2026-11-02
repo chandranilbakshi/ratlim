@@ -39,17 +39,22 @@ export function createLeakyBucket({
 
     return new Promise((resolve, reject) => {
       client.queue.push({task, resolve, reject});
-      processQueue(client);
+      processQueue(key, client);
     })
   }
 
-  async function processQueue(client) {
-    if(client.running || client.timer !== null || client.queue.length === 0){
+  async function processQueue(key, client) {
+    if(client.running || client.timer !== null){
       return
     }
 
     const now = Date.now();
     const delayMs = client.nextStartAt === null ? 0 : Math.max(0, client.nextStartAt - now);
+
+    if(client.queue.length === 0 && delayMs === 0){
+      clients.delete(key);
+      return;
+    }
 
     if(delayMs > 0){
       client.timer = setTimeout(() => {
