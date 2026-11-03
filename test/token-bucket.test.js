@@ -63,9 +63,7 @@ describe("Token Bucket refill", () => {
       now = timestamp;
       const result = limiter.consume("alice");
       expect(result.allowed).toBe(false);
-      // Floating-point calculations can produce tiny representation errors.
       expect(result.remaining).toBeCloseTo(timestamp / 1000, 10);
-      // Rounding that error upward may add 1ms; never advertise an early retry.
       expect(result.retryAfterMs).toBeGreaterThanOrEqual(1000 - now);
       expect(result.retryAfterMs).toBeLessThanOrEqual(1001 - now);
     }
@@ -119,7 +117,7 @@ describe("Token Bucket refill", () => {
     limiter.consume("alice");
 
     const rejected = limiter.consume("alice");
-    expect(rejected.retryAfterMs).toBe(334); // 1000 / 3 = 333.333...ms.
+    expect(rejected.retryAfterMs).toBe(334);
     now = rejected.retryAfterMs;
     expect(limiter.consume("alice").allowed).toBe(true);
   });
@@ -150,7 +148,6 @@ describe("Token Bucket isolation", () => {
 });
 
 describe("Token Bucket validation", () => {
-  // Table-driven tests repeat the same check with different invalid inputs.
   const validConfig = { capacity: 2, refillRate: 1, cleanupInterval: 0 };
 
   test.each([0, -1, 1.5, NaN, Infinity, "2", undefined, Number.MAX_SAFE_INTEGER + 1])(
@@ -186,13 +183,10 @@ describe("Token Bucket validation", () => {
     },
   );
 
-  // Known missing behavior; TODO is not a passing correctness check.
   test.todo("rejects a non-function clock when creating the limiter");
 });
 
 describe("Token Bucket cleanup and lifecycle", () => {
-  // These tests replace timer functions briefly; do not run them concurrently.
-  // A spy records calls and can replace behavior. Restore originals afterward.
   afterEach(() => mock.restore());
 
   test("cleanupInterval 0 creates no background timer", () => {
@@ -208,7 +202,6 @@ describe("Token Bucket cleanup and lifecycle", () => {
   });
 
   test("cleanup preserves active quota and allows normal refill after expiration", () => {
-    // Capture the private callback instead of waiting for a real interval.
     const intervalSpy = spyOn(globalThis, "setInterval").mockReturnValue({});
     const clearSpy = spyOn(globalThis, "clearInterval").mockImplementation(() => {});
     let now = 0;
@@ -225,7 +218,7 @@ describe("Token Bucket cleanup and lifecycle", () => {
       limiter.consume("bob");
       limiter.consume("bob");
 
-      now = 2000; // Alice is full; Bob has only 1.5 tokens.
+      now = 2000;
       sweep();
       expect(limiter.consume("alice").remaining).toBe(1);
       expect(limiter.consume("bob").remaining).toBe(0.5);
