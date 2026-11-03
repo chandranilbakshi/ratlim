@@ -260,7 +260,7 @@ describe("Leaky Bucket validation", () => {
       await expect(result).rejects.toThrow("key must be a non-empty string");
     },
   );
-  test.each([null, undefined, 1, "task"])(
+  test.each([null, undefined, 1, "task", {}])(
     "rejects invalid task %p through a Promise", async (task) => {
       const limiter = createLeakyBucket({ capacity: 2, leakRate: 2 });
       await expect(limiter.schedule("alice", task)).rejects.toThrow("task must be a function");
