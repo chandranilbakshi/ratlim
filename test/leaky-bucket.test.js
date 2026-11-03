@@ -266,5 +266,5 @@ describe("Leaky Bucket validation", () => {
       await expect(limiter.schedule("alice", task)).rejects.toThrow("task must be a function");
     },
   );
-  
+  test.todo("provides shutdown that cancels timers and settles queued submissions");
 });
