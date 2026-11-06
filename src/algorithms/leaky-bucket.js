@@ -59,7 +59,7 @@ export function createLeakyBucket({
     if(delayMs > 0){
       client.timer = setTimeout(() => {
         client.timer = null;
-        processQueue(client);
+        processQueue(kwy, client);
       }, delayMs);
       return;
     }
@@ -75,7 +75,7 @@ export function createLeakyBucket({
       job.reject(error);
     }finally{
       client.running = false;
-      processQueue(client);
+      processQueue(key, client);
     }
   }
 
