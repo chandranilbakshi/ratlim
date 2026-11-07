@@ -93,7 +93,7 @@ function createRedisTokenBucket({
   capacity,
   refillRate,
   client,
-  clock = Date.now(),
+  clock = () => Date.now(),
   cleanupInterval = 30000
 }) {
   if (client == null) {
@@ -106,6 +106,34 @@ function createRedisTokenBucket({
     }
 
     const now = clock();
+
+    let bucket = await client.hexists(`ratlim:token-bucket:${key}`);
+    let userTokens;
+    let userLastRefill;
+
+    if(!bucket){
+      userTokens = capacity;
+      userLastRefill = now;
+    } else{
+      userTokens = await client.hget(`ratlim:token-bucket:${key}`, "tokens");
+      userLastRefill = await client.hget(`ratlim:token-bucket:${key}`, "lastRefillAt");
+    }
+
+    const elapsed = now - userLastRefill;
+    const tokens = Math.min(capacity, userTokens+(elapsed/1000)*refillRate);
+
+    if(tokens>=1){
+      await client.send("HSET", [
+        `ratlim:token-bucket:${key}`,
+        "tokens", tokens-1,
+        "lastRefillAt", now,
+      ]);
+      return {
+        allowed: true,
+        remaining: tokens-1,
+        retryAfterMs: 0
+      }
+    }
 
 
 
