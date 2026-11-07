@@ -1,4 +1,24 @@
-export function createTokenBucket({
+export function createTokenBucket(options) {
+  const { capacity, refillRate, backend = "memory" } = options;
+
+  if (!Number.isSafeInteger(capacity) || capacity <= 0) {
+    throw new TypeError("capacity must be a positive safe integer");
+  }
+  if (!Number.isFinite(refillRate) || refillRate <= 0) {
+    throw new TypeError("refillRate must be a positive finite number");
+  }
+
+  if (backend === "memory") {
+    return createMemoryTokenBucket(options);
+  }
+  if (backend === "redis") {
+    return createRedisTokenBucket(options);
+  }
+
+  throw new TypeError("Unsupported backend");
+}
+
+function createMemoryTokenBucket({
   capacity,
   refillRate,
   clock = () => Date.now(),
@@ -6,14 +26,8 @@ export function createTokenBucket({
 }) {
   const buckets = new Map();
 
-  if (!Number.isSafeInteger(capacity) || capacity <= 0) {
-    throw new TypeError("capacity must be a positive safe integer");
-  }
   if (!Number.isSafeInteger(cleanupInterval) || cleanupInterval < 0) {
     throw new TypeError("cleanupInterval must be a positive safe integer");
-  }
-  if (!Number.isFinite(refillRate) || refillRate <= 0) {
-    throw new TypeError("refillRate must be a positive finite number");
   }
 
   function consume(key){
@@ -73,4 +87,40 @@ export function createTokenBucket({
   }
 
   return {consume, close};
+}
+
+function createRedisTokenBucket({
+  capacity,
+  refillRate,
+  client,
+  clock = Date.now(),
+  cleanupInterval = 30000
+}) {
+  if (client == null) {
+    throw new TypeError("client is required for the Redis backend");
+  }
+
+  async function consume(key) {
+    if (typeof key !== "string" || key.length === 0) {
+      throw new TypeError("key must be a non-empty string");
+    }
+
+    const now = clock();
+
+
+
+    // TODO: Choose a namespaced Redis key for this client's bucket.
+    // TODO: Learn how to read tokens and lastRefillAt from a Redis hash.
+    // TODO: Implement refill/check/subtract/save atomically with Lua,
+    // using capacity and refillRate. Separate reads/writes are practice only.
+    // TODO: Set safe expiration and return the decision result.
+    throw new Error("Redis backend not implemented yet");
+  }
+
+  function close() {
+    // No local resources yet. The supplied Redis client belongs to the caller;
+    // the caller closes it when finished, as it may serve other limiters too.
+  }
+
+  return { consume, close };
 }
