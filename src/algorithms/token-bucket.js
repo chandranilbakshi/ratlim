@@ -108,16 +108,21 @@ function createRedisTokenBucket({
     const now = clock();
     const redisKey = `ratlim:token-bucket:${key}`;
 
-    let bucket = await client.exists(redisKey);
     let userTokens;
     let userLastRefill;
+    [userTokens, userLastRefill] = await client.hmget(
+      redisKey,
+      ["tokens", "lastRefillAt"],
+    );
 
-    if(!bucket){
+    if(userTokens === null && userLastRefill === null){
       userTokens = capacity;
       userLastRefill = now;
+    } else if(userTokens === null || userLastRefill === null){
+      throw new Error("Incomplete token bucket state in Redis");
     } else{
-      userTokens = Number(await client.hget(redisKey, "tokens"));
-      userLastRefill = Number(await client.hget(redisKey, "lastRefillAt"));
+      userTokens = Number(userTokens);
+      userLastRefill = Number(userLastRefill);
     }
 
     const elapsed = now - userLastRefill;
