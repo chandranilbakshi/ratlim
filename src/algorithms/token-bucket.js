@@ -136,14 +136,16 @@ function createRedisTokenBucket({
       }
     }
 
-
-
-    // TODO: Choose a namespaced Redis key for this client's bucket.
-    // TODO: Learn how to read tokens and lastRefillAt from a Redis hash.
-    // TODO: Implement refill/check/subtract/save atomically with Lua,
-    // using capacity and refillRate. Separate reads/writes are practice only.
-    // TODO: Set safe expiration and return the decision result.
-    throw new Error("Redis backend not implemented yet");
+    await client.send("HSET", [
+      redisKey,
+      "tokens", String(tokens),
+      "lastRefillAt", String(now),
+    ]);
+    return {
+      allowed: false,
+      remaining: tokens,
+      retryAfterMs: Math.ceil(((1-tokens)/refillRate)*1000),
+    }
   }
 
   function close() {
